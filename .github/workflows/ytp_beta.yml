@@ -203,7 +203,7 @@ jobs:
         if: ${{ inputs.enable_ytuhd }}
         run: |
           cd ${{ github.workspace }}
-          git clone --quiet --depth=1 https://github.com/PoomSmart/YTUHD.git
+          git clone --quiet --recurse-submodules https://github.com/PoomSmart/YTUHD.git
 
       - name: Clone Return-YouTube-Dislikes
         if: ${{ inputs.enable_ryd }}
@@ -248,7 +248,6 @@ jobs:
         if: ${{ inputs.enable_ytuhd }}
         run: |
           cd ${{ github.workspace }}/YTUHD
-          git submodule sync
           make clean package DEBUG=0 FINALPACKAGE=1 SIDELOAD=1
           mv packages/*.deb ${{ github.workspace }}/ytuhd.deb
         env:
