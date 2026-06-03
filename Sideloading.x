@@ -62,6 +62,10 @@ static NSString *accessGroupID() {
 + (BOOL)isFromAppStore { return YES; }
 %end
 
+%hook SSOClientLogin
++ (NSString *)defaultSourceString { return YT_BUNDLE_ID; }
+%end
+
 %hook SSOConfiguration
 - (id)initWithClientID:(id)clientID supportedAccountServices:(id)supportedAccountServices {
     self = %orig;
@@ -71,17 +75,20 @@ static NSString *accessGroupID() {
 }
 %end
 
-BOOL isSelf() {
-    NSArray *address = [NSThread callStackReturnAddresses];
-    Dl_info info = {0};
-    if (dladdr((void *)[address[2] longLongValue], &info) == 0) return NO;
-    NSString *path = [NSString stringWithUTF8String:info.dli_fname];
-    return [path hasPrefix:NSBundle.mainBundle.bundlePath];
-}
+%hook YTHotConfig
+- (BOOL)clientInfraClientConfigIosEnableFillingEncodedHacksInnertubeContext { return NO; }
+%end
 
 %hook NSBundle
+
++ (NSBundle *)bundleWithIdentifier:(NSString *)identifier {
+    if ([identifier isEqualToString:YT_BUNDLE_ID])
+        return NSBundle.mainBundle;
+    return %orig;
+}
+
 - (NSString *)bundleIdentifier {
-    return isSelf() ? YT_BUNDLE_ID : %orig;
+   return [self isEqual:NSBundle.mainBundle] ? YT_BUNDLE_ID : %orig;
 }
 
 - (NSDictionary *)infoDictionary {
@@ -114,6 +121,57 @@ BOOL isSelf() {
 + (NSString *)sharedAccessGroup {
     return accessGroupID();
 }
+%end
+
+%hook SSOFolsomKeychainUtils
+- (id)sharedAccessGroup { return accessGroupID(); }
+%end
+
+%hook GULKeychainStorage
+- (void)getObjectForKey:(id)key objectClass:(Class)objectClass accessGroup:(id)accessGroup completionHandler:(id)handler {
+    accessGroup = accessGroupID();
+    %orig(key, objectClass, accessGroup, handler);
+}
+- (void)setObject:(id)object forKey:(id)key accessGroup:(id)accessGroup completionHandler:(id)handler {
+    accessGroup = accessGroupID();
+    %orig(object, key, accessGroup, handler);
+}
+- (void)removeObjectForKey:(id)key accessGroup:(id)accessGroup completionHandler:(id)handler {
+    accessGroup = accessGroupID();
+    %orig(key, accessGroup, handler);
+}
+- (void)getObjectFromKeychainForKey:(id)key objectClass:(Class)objectClass accessGroup:(id)accessGroup completionHandler:(id)handler {
+    accessGroup = accessGroupID();
+    %orig(key, objectClass, accessGroup, handler);
+}
+- (id)keychainQueryWithKey:(id)key accessGroup:(id)accessGroup {
+    accessGroup = accessGroupID();
+    return %orig(key, accessGroup);
+}
+%end
+
+%hook GNPEncryptionConfiguration
+- (id)initWithKeychainAccessGroup:(id)arg {
+    arg = accessGroupID();
+    return %orig(arg);
+}
+- (id)keychainAccessGroup { return accessGroupID(); }
+%end
+
+%hook FIRInstallationsStore
+- (id)initWithSecureStorage:(id)arg1 accessGroup:(id)arg2 {
+    arg2 = accessGroupID();
+    return %orig(arg1, arg2);
+}
+- (id)accessGroup { return accessGroupID(); }
+%end
+
+%hook CHMConfiguration
+- (void)setKeychainAccessGroup:(id)arg {
+    arg = accessGroupID();
+    %orig(arg);
+}
+- (id)keychainAccessGroup { return accessGroupID(); }
 %end
 
 // Fix login for YouTube 17.33.2 and higher
