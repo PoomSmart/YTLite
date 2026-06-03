@@ -199,6 +199,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}
           git clone --quiet --depth=1 https://github.com/PoomSmart/YTUHD.git
+          git submodule sync
 
       - name: Clone Return-YouTube-Dislikes
         if: ${{ inputs.enable_ryd }}

@@ -198,6 +198,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}
           git clone --quiet --depth=1 https://github.com/PoomSmart/YouPiP.git
+          git submodule sync
 
       - name: Clone YTUHD
         if: ${{ inputs.enable_ytuhd }}
