@@ -198,7 +198,6 @@ jobs:
         run: |
           cd ${{ github.workspace }}
           git clone --quiet --depth=1 https://github.com/PoomSmart/YouPiP.git
-          git submodule sync
 
       - name: Clone YTUHD
         if: ${{ inputs.enable_ytuhd }}
@@ -249,6 +248,7 @@ jobs:
         if: ${{ inputs.enable_ytuhd }}
         run: |
           cd ${{ github.workspace }}/YTUHD
+          git submodule sync
           make clean package DEBUG=0 FINALPACKAGE=1 SIDELOAD=1
           mv packages/*.deb ${{ github.workspace }}/ytuhd.deb
         env:
